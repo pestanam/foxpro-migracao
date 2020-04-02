@@ -150,7 +150,7 @@ public class Main {
 		StringBuilder soInsertRel = new StringBuilder();
 
 		sbInsert.append(
-				"INSERT INTO conta (codigo, descricao, tipo_transacao, lancamento_razao, lancamento_obreiro) values (");
+				"INSERT INTO conta (codigo, descricao, tipo_transacao, tipo_relacionamento, efetua_lancamento_obreiro, efetua_lancamento_razao) values (");
 
 		soInsertRel.append("INSERT INTO rel_conta_tipo_razao (codigo_tipo_razao, codigo_conta) values (");
 
@@ -179,14 +179,11 @@ public class Main {
 					String tipo = v.toString().trim();
 
 					if (tipo.equals("COBR")) {
-						sbCommand.append("'N',");
-						sbCommand.append("'S'");
+						sbCommand.append("1").append(",'").append("S").append("',").append("'").append("N").append("'");
 					} else if (tipo.equals("LFA1")) {
-						sbCommand.append("'S',");
-						sbCommand.append("'N'");
+						sbCommand.append("2").append(",'").append("N").append("',").append("'").append("S").append("'");
 					} else {
-						sbCommand.append("'',");
-						sbCommand.append("''");
+						sbCommand.append("0,").append("null,").append("null");
 					}
 
 				}
@@ -226,7 +223,7 @@ public class Main {
 		StringBuilder sbInsert = new StringBuilder();
 
 		sbInsert.append(
-				"INSERT INTO cj81.lancamento_obreiro (codigo_conta, data_lancamento, codigo_obreiro, descricao, valor, idenfiticacao_bancaria, sequencia_lancamento) values (");
+				"INSERT INTO cj81.lancamento (categoria_lancamento, codigo_conta, data_lancamento, codigo_obreiro, descricao, valor, identificacao_bancaria) values ('O', ");
 
 		rs.MoveFirst();
 		while (!rs.getEOF()) {
@@ -247,12 +244,12 @@ public class Main {
 				} else if (i == 5) {
 					String valor = v.changeType(Variant.VariantString).getString().trim();
 					sbCommand.append(valor.equals("") ? "null" : "'" + valor + "'");
-				} else {
+				} else if (i == 2 || i == 4){
 					String valor = v.toString().trim();
 					sbCommand.append(valor.equals("") ? "null" : valor);
 				}
 
-				if (i < fs.getCount() - 1) {
+				if (i < fs.getCount() - 2) {
 					sbCommand.append(",");
 				}
 
@@ -270,7 +267,7 @@ public class Main {
 		StringBuilder sbInsert = new StringBuilder();
 
 		sbInsert.append(
-				"INSERT INTO cj81.lancamento_razao (codigo_tipo_razao, codigo_conta, data_lancamento, codigo_obreiro,codigo_favorecido, descricao, valor, sequencia_lancamento) values (");
+				"INSERT INTO cj81.lancamento (categoria_lancamento, codigo_tipo_razao, codigo_conta, data_lancamento, codigo_obreiro,codigo_favorecido, descricao, valor) values ('R', ");
 
 		rs.MoveFirst();
 		while (!rs.getEOF()) {
@@ -309,11 +306,13 @@ public class Main {
 					}
 				} else if (i==4) { // descricao
 					sbCommand.append("'").append((v.toString().trim()).replace("'", "''")).append("'");
-				} else if (i==5 || i==6) { // valor / sequencia
+				} else if (i==5) { // valor / sequencia
 					sbCommand.append(v);
+//				} else if (i==5 || i==6) { // valor / sequencia
+//					sbCommand.append(v);
 				}
 
-				if (i < fs.getCount() - 1) {
+				if (i < fs.getCount() - 2) {
 					sbCommand.append(",");
 				}
 
@@ -388,8 +387,8 @@ public class Main {
 
 		// generateInsertObreiros(c, "select * from cobr");
 		// generateInsertConta(c, "select * from kont");
-		 generateInsertCCObreiros(c, "select * from ccobr order by idmov");
-		//generateInsertCCRazao(c, "select * from razao order by idmov");
+		//generateInsertCCObreiros(c, "select * from ccobr order by idmov");
+		generateInsertCCRazao(c, "select * from razao order by idmov");
 
 		c.Close();
 
