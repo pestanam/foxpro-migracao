@@ -12,14 +12,56 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang3.StringEscapeUtils;
-
 import com.jacob.com.Variant;
 
 public class Main {
 
 	private static String connectStr = "Provider=vfpoledb;Data Source=C:\\NET\\workspaces\\foxpro\\dados; Sequence=general;\";";
 
+	public static void printFavorecido(Recordset rs) {
+		Fields fs = rs.getFields();
+		StringBuilder sbInsertFavorecido = new StringBuilder();
+
+		sbInsertFavorecido.append(
+				"INSERT INTO favorecido (codigo, descricao, complemento, valor_fixo) values (");
+
+		rs.MoveFirst();
+		while (!rs.getEOF()) {
+			StringBuilder sbCommandFavorecido = new StringBuilder();
+			sbCommandFavorecido.append(sbInsertFavorecido);
+
+			for (int i = 0; i < fs.getCount(); i++) {
+				Field f = fs.getItem(i);
+				Variant v = f.getValue();
+
+				if (i == 0) {
+					int codigo = v.changeType(Variant.VariantInt).getInt();
+					sbCommandFavorecido.append(codigo);
+				}
+
+				if (i == 1 || i == 2) {
+					sbCommandFavorecido.append("'").append(v.toString().trim()).append("'");
+				} 
+				
+				if (i == 3) {
+					String valor = v.toString().trim();
+					sbCommandFavorecido.append(valor.equals("") ? "null" : valor);
+				}
+
+				if (i < fs.getCount() - 1) {
+					sbCommandFavorecido.append(",");
+				}
+
+				// System.out.print(v + ";");
+			}
+
+			sbCommandFavorecido.append(");");
+			System.out.println(sbCommandFavorecido.toString());
+			rs.MoveNext();
+		}
+
+	}
+	
 	public static void printObreiro(Recordset rs) {
 		Fields fs = rs.getFields();
 		StringBuilder sbInsertObreiro = new StringBuilder();
@@ -334,6 +376,12 @@ public class Main {
 
 	}
 
+	public static void generateInsertFavorecidos(Connection c, String command) {
+		Recordset rs = getCommand(c, command);
+		printFavorecido(rs);
+	}
+
+	
 	public static void generateInsertObreiros(Connection c, String command) {
 		Recordset rs = getCommand(c, command);
 		printObreiro(rs);
@@ -385,10 +433,11 @@ public class Main {
 		c.setConnectionString(connectStr);
 		c.Open();
 
-		// generateInsertObreiros(c, "select * from cobr");
-		// generateInsertConta(c, "select * from kont");
+		generateInsertFavorecidos(c, "select * from lfa1");
+		//generateInsertObreiros(c, "select * from cobr");
+		//generateInsertConta(c, "select * from kont");
 		//generateInsertCCObreiros(c, "select * from ccobr order by idmov");
-		generateInsertCCRazao(c, "select * from razao order by idmov");
+		//generateInsertCCRazao(c, "select * from razao order by idmov");
 
 		c.Close();
 
